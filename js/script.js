@@ -8,70 +8,6 @@ let currentOrder = {
     total: 0
 };
 
-// Menu Data
-const menuData = [
-    {
-        id: 1,
-        name: "Martabak Sapi Mozarella Telur Bebek",
-        category: "asin",
-        price: 31500,
-        image: "Martabak_Mozarella.jpg",
-        description: "Signature dish dengan daging sapi, keju mozarella, dan telur bebek",
-        isSignature: true,
-        ingredients: ["Daging Sapi", "Keju Mozarella", "Telur Bebek"]
-    },
-    {
-        id: 2,
-        name: "Martabak Ikan Tuna Asap",
-        category: "asin",
-        price: 25000,
-        image: "https://via.placeholder.com/300x200/F8981D/FFFFFF?text=Tuna+Asap",
-        description: "Martabak dengan ikan tuna asap yang kaya gizi",
-        isSignature: false,
-        ingredients: ["Ikan Tuna Asap", "Telur"]
-    },
-    {
-        id: 3,
-        name: "Martabak Ayam Klasik",
-        category: "asin",
-        price: 21000,
-        image: "https://via.placeholder.com/300x200/FF6B35/FFFFFF?text=Ayam+Klasik",
-        description: "Martabak asin klasik dengan ayam shredded",
-        isSignature: false,
-        ingredients: ["Ayam Shredded", "Telur", "Daun Bawang"]
-    },
-    {
-        id: 4,
-        name: "Martabak Coklat Keju",
-        category: "manis",
-        price: 17000,
-        image: "https://via.placeholder.com/300x200/8B4513/FFFFFF?text=Coklat+Keju",
-        description: "Perpaduan sempurna coklat dan keju dalam martabak manis",
-        isSignature: false,
-        ingredients: ["Coklat", "Keju", "Susu Kental Manis"]
-    },
-    {
-        id: 5,
-        name: "Martabak Pandan Susu",
-        category: "manis",
-        price: 15000,
-        image: "https://via.placeholder.com/300x200/90EE90/FFFFFF?text=Pandan+Susu",
-        description: "Martabak manis dengan aroma pandan dan susu",
-        isSignature: false,
-        ingredients: ["Pandan", "Susu Kental Manis"]
-    },
-    {
-        id: 6,
-        name: "Martabak Kacang Original",
-        category: "manis",
-        price: 13500,
-        image: "https://via.placeholder.com/300x200/DEB887/FFFFFF?text=Kacang+Original",
-        description: "Martabak manis tradisional dengan kacang tanah",
-        isSignature: false,
-        ingredients: ["Kacang Tanah", "Gula"]
-    }
-];
-
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
@@ -84,9 +20,6 @@ function initializeApp() {
         once: true,
         offset: 100
     });
-
-    // Load menu items
-    loadMenuItems();
     
     // Initialize event listeners
     initializeEventListeners();
@@ -133,50 +66,26 @@ function initializeEventListeners() {
     // Add quick order buttons for menu items
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('quick-order-btn')) {
-            const itemId = parseInt(e.target.dataset.itemId);
-            quickOrder(itemId);
+            const button = e.target;
+            const itemData = {
+                id: parseInt(button.dataset.itemId),
+                name: button.dataset.itemName,
+                price: parseFloat(button.dataset.itemPrice),
+                category: button.dataset.itemCategory
+            };
+            quickOrder(itemData);
         }
     });
 }
 
 function loadMenuItems() {
-    const container = document.getElementById('menuContainer');
-    container.innerHTML = '';
-
-    menuData.forEach(item => {
-        const menuCard = createMenuCard(item);
-        container.appendChild(menuCard);
-    });
+    // Menu items are now loaded from PHP/database in the HTML
+    // This function is no longer needed but kept for compatibility
 }
 
 function createMenuCard(item) {
-    const col = document.createElement('div');
-    col.className = 'col-lg-4 col-md-6 mb-4';
-    col.dataset.category = item.category;
-
-    col.innerHTML = `
-        <div class="card menu-card h-100" data-aos="fade-up">
-            ${item.isSignature ? '<span class="badge badge-signature">Signature</span>' : ''}
-            <div class="position-relative overflow-hidden">
-                <img src="${item.image}" class="card-img-top" alt="${item.name}">
-            </div>
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">${item.name}</h5>
-                <p class="card-text text-muted flex-grow-1">${item.description}</p>
-                <div class="mb-2">
-                    <small class="text-muted">Berisi: ${item.ingredients.join(', ')}</small>
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="h5 text-primary mb-0">Rp ${item.price.toLocaleString('id-ID')}</span>
-                    <button class="btn btn-outline-primary quick-order-btn" data-item-id="${item.id}">
-                        <i class="fas fa-plus"></i> Pesan
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    return col;
+    // Menu cards are now generated in PHP
+    // This function is no longer needed but kept for compatibility
 }
 
 function filterMenu(category) {
@@ -239,9 +148,9 @@ function updateOrderSummary() {
     // Get selected toppings
     const selectedToppings = [];
     document.querySelectorAll('#martabakForm input[type="checkbox"]:checked').forEach(checkbox => {
-        const price = parseInt(checkbox.dataset.price);
-        const label = checkbox.nextElementSibling.querySelector('span').textContent;
-        selectedToppings.push({ name: label, price: price });
+        const price = parseFloat(checkbox.dataset.price);
+        const name = checkbox.dataset.name;
+        selectedToppings.push({ name: name, price: price });
         total += price;
     });
 
@@ -361,19 +270,18 @@ function removeFromCart(index) {
     });
 }
 
-function quickOrder(itemId) {
-    const item = menuData.find(m => m.id === itemId);
-    if (!item) return;
+function quickOrder(itemData) {
+    if (!itemData) return;
 
     // Add directly to cart
     const cartItem = {
         id: Date.now(),
-        base: { type: item.category, price: item.price },
+        base: { type: itemData.category, price: itemData.price },
         toppings: [],
-        total: item.price,
+        total: itemData.price,
         quantity: 1,
         isQuickOrder: true,
-        name: item.name
+        name: itemData.name
     };
 
     cart.push(cartItem);
@@ -382,7 +290,7 @@ function quickOrder(itemId) {
 
     Swal.fire({
         title: 'Ditambahkan!',
-        text: `${item.name} berhasil ditambahkan ke keranjang`,
+        text: `${itemData.name} berhasil ditambahkan ke keranjang`,
         icon: 'success',
         timer: 1500,
         showConfirmButton: false,
